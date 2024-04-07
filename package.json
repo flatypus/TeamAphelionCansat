@@ -1,0 +1,12 @@
+{
+  "name": "tag-across-the-world",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "scripts": {
+    "landing": "cd landing && bun run dev",
+    "dev": "concurrently \"cd mission_control && bun run dev\" \"cd backend && bun run dev\"",
+    "install": "concurrently \"cd mission_control && bun i\" \"cd backend && bun i\"",
+    "i": "bun install"
+  }
+}
