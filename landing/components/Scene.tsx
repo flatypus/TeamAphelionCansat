@@ -4,6 +4,7 @@ import { GLTF, GLTFLoader, RGBELoader } from "three/examples/jsm/Addons.js";
 import { Show } from "./Show";
 import * as THREE from "three";
 import React, { useRef, useEffect, useState } from "react";
+import { Rocket } from "./Rocket";
 
 const ANIMATION_BOUND = 20400;
 
@@ -103,45 +104,12 @@ function ThreeScene() {
   }, []);
 
   return (
-    <div className="relative h-full min-h-screen w-full overflow-hidden bg-black">
+    <div className="relative h-full min-h-screen w-full overflow-x-hidden bg-black">
       <div
         className="absolute left-0 top-0 z-[100] h-full w-full bg-blue-400 transition-all duration-500"
         style={{ opacity: readyBackground && readyModel ? 0 : 1 }}
       >
-        <div className="relative h-full w-full">
-          <a
-            className="absolute bottom-2 right-2 text-xs text-[#ffffff65]"
-            href="https://codepen.io/Dooove/pen/abbPjKw"
-          >
-            Credit to: https://codepen.io/Dooove/pen/abbPjKw
-          </a>
-          <span className="absolute left-[50%] top-[85%] z-[200] translate-x-[-50%] text-5xl text-[#ffffffa0]">
-            Loading...
-          </span>
-        </div>
-        <div id="loading-rocket-ce">
-          <div className="rocket-ce">
-            <span>
-              <i className="wing-top"></i>
-              <i className="wing-bottom"></i>
-              <i className="flame"></i>
-              <i className="wastes">
-                <i></i>
-                <i></i>
-                <i></i>
-                <i></i>
-                <i></i>
-              </i>
-              <i className="lightspeed">
-                <i></i>
-                <i></i>
-                <i></i>
-                <i></i>
-                <i></i>
-              </i>
-            </span>
-          </div>
-        </div>
+        <Rocket />
       </div>
       <Show
         title="About CanSat"
@@ -254,7 +222,7 @@ function ThreeScene() {
           Scroll Down!
         </div>
       </div>
-      <canvas ref={containerRef} />
+      <canvas className="fixed" ref={containerRef} />
     </div>
   );
 }
