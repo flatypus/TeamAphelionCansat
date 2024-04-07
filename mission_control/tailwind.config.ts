@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "bg-gray": "#333333",
+        gray: "#333333",
+        divide: "#3c3c3c",
       },
     },
   },

@@ -39,6 +39,7 @@ void println(const char *data)
 
 void loop()
 {
+  Serial.println("Reading!");
   if (!bmp.performReading())
   {
     Serial.println("Failed to perform reading");
@@ -49,5 +50,7 @@ void loop()
   sprintf(buffer, "{temperature:%f,pressure:%f,altitude:%f}", bmp.temperature, bmp.pressure / 100.0, bmp.readAltitude(SEALEVELPRESSURE_HPA));
   println(buffer);
 
-  delay(1000);
+  delay(100);
+
+  
 }
