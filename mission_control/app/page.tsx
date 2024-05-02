@@ -1,6 +1,6 @@
 "use client";
 
-import { Data } from "@/lib/types";
+import { Data, DATA_KEYS as DATA_KEYS } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { TbTemperaturePlus } from "react-icons/tb";
@@ -19,8 +19,12 @@ function Icon({ icon }: { icon: string }) {
       return <GiPressureCooker />;
     case "altitude":
       return <PiMountainsLight />;
+    case "relativeAltitude":
+      return <PiMountainsLight />;
   }
 }
+
+const units = ["°C", "mBar", "m", "m"];
 
 export default function Page() {
   const [data, setData] = useState<Data[]>([]);
@@ -33,9 +37,9 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="bg-gray min-h-screen w-full p-10">
-      <div className="divide-divide border-divide flex h-full w-full flex-col divide-y-2 border-2">
-        {(["temperature", "pressure", "altitude"] as const).map((key) => {
+    <div className="min-h-screen w-full bg-gray p-10">
+      <div className="flex h-full w-full flex-col divide-y-2 divide-divide border-2 border-divide">
+        {DATA_KEYS.map((key, index) => {
           const valueList = data.map((point) => point[key]);
           return (
             <div className="p-4">
@@ -62,7 +66,21 @@ export default function Page() {
                     (Math.round(value * 1000) / 1000).toString()
                   }
                 />
-                <Tooltip />
+                <Tooltip
+                  content={({ payload }) => {
+                    const value = payload?.[0]?.value as number;
+                    if (value === undefined) return null;
+                    return (
+                      <div className="bg-white p-2 text-black">
+                        <div>
+                          {key.at(0)?.toUpperCase()}
+                          {key.slice(1)}: {Math.round(value * 1000) / 1000}
+                          {units[index]}
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
                 <Line
                   type="monotone"
                   dataKey={key}

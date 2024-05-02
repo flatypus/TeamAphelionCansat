@@ -1,5 +1,5 @@
 import { ReadlineParser, SerialPort } from "serialport";
-import { Data } from "./types";
+import { Data, DATA_KEYS } from "./types";
 
 export class Serial {
   private parser: ReadlineParser;
@@ -19,23 +19,21 @@ export class Serial {
   }
 
   private process = (data: string): Data | null => {
-    console.log(data);
-    const regex =
-      /\+RCV=(\d+),(\d+),\{temperature:(\d+\.\d+),pressure:(\d+\.\d+),altitude:(\d+\.\d+)\},(-?\d+),(\d+)/;
-    const match = data.match(regex);
+    const match_string = DATA_KEYS.map((key) => `${key}:(-?\\d+\\.\\d+)`).join(
+      ",",
+    );
+    const regex = new RegExp(
+      `\\+RCV=(\\d+),(\\d+),\\{${match_string}\\},(-?\\d+),(\\d+)`,
+    );
 
+    const match = data.match(regex);
     if (!match) {
       return null;
     }
 
-    const [_, address, length, temperature, pressure, altitude, bruh, moment] =
-      match;
-
-    return {
-      temperature: parseFloat(temperature),
-      pressure: parseFloat(pressure),
-      altitude: parseFloat(altitude),
-    };
+    return Object.fromEntries(
+      DATA_KEYS.map((key, i) => [key, parseFloat(match[i + 3])]),
+    ) as Data;
   };
 
   public subscribe(listener: (data: Data) => void) {
