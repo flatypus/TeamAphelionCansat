@@ -8,8 +8,9 @@
 
 SoftwareSerial lora(34, 35);
 MS5611 sensor;
-SFE_UBLOX_GNSS myGNSS;
+SFE_UBLOX_GNSS GPSGNSS;
 
+#define SEALEVELPRESSURE_HPA (1013.25)
 #define GPSWire Wire2
 #define gnssAddress 0x42
 
@@ -29,7 +30,6 @@ const double f_n = 2 * f_c / f_s;
 // Sixth-order Butterworth filter
 auto filter = butter<6>(f_n);
 
-#define SEALEVELPRESSURE_HPA (1013.25)
 
 double altitude(double pressure)
 {
@@ -41,6 +41,7 @@ void setup()
   Serial.begin(BAUD_RATE);
   lora.begin(BAUD_RATE);
   Wire.begin();
+  GPSWire.begin();
 
   if (!sensor.begin())
   {
@@ -49,10 +50,17 @@ void setup()
       ;
   }
 
+  while (GPSGNSS.begin(GPSWire, gnssAddress) == false)
+  {
+      Serial.println(F("u-blox GNSS not detected. Retrying..."));
+      delay (1000);
+  }
+
   sensor.read();
   referencePressure = sensor.getPressure();
   referenceAltitude = altitude(referencePressure);
   sensor.setOversampling(OSR_ULTRA_HIGH);
+  GPSGNSS.setI2COutput(COM_TYPE_UBX);
 }
 
 void println(const char *data)
@@ -73,10 +81,22 @@ void loop()
   double realPressure = filter(rawPressure);
   double realAltitude = altitude(realPressure);
   double relativeAltitude = realAltitude - referenceAltitude;
+  double latitude = 0;
+  double longitude = 0;
 
-  char buffer[100];
-  sprintf(buffer, "{temperature:%f,pressure:%f,altitude:%f,relativeAltitude:%f}", realTemperature, realPressure, realAltitude, relativeAltitude);
+  if (GPSGNSS.getPVT())
+  {
+    latitude = GPSGNSS.getLatitude() / 10e6;
+    longitude = GPSGNSS.getLongitude() / 10e6;
+  }
+
+  char buffer[255];
+  sprintf(
+    buffer, 
+    "{temperature:%f,pressure:%f,altitude:%f,relativeAltitude:%f,latitude:%f,longitude:%f}", 
+    realTemperature, realPressure, realAltitude, relativeAltitude, latitude, longitude
+  );
+
   println(buffer);
-
   delay(100);
 }

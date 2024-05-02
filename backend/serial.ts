@@ -40,6 +40,7 @@ export class Serial {
     this.parser.on("data", (data) => {
       const processed = this.process(data);
       if (!processed) return;
+      console.log("Received data", processed);
       listener(processed);
     });
   }
