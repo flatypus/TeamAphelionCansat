@@ -6,6 +6,7 @@ import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { TbTemperaturePlus } from "react-icons/tb";
 import { PiMountainsLight } from "react-icons/pi";
 import { GiPressureCooker } from "react-icons/gi";
+import { OfflineMap } from "../../../offline-map";
 
 function domain(numbers: number[]) {
   return [Math.min(...numbers), Math.max(...numbers)];
@@ -26,7 +27,7 @@ function Icon({ icon }: { icon: string }) {
 
 const units = ["°C", "mBar", "m", "m"];
 
-export default function Page() {
+function Graphs() {
   const [data, setData] = useState<Data[]>([]);
 
   useEffect(() => {
@@ -95,6 +96,38 @@ export default function Page() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <div className="flex h-full min-h-screen w-screen flex-col items-center">
+      {/* <Graphs /> */}
+      <OfflineMap
+        config={{
+          showCoordinates: true,
+          showCenter: true,
+        }}
+        latitude={49.541125}
+        longitude={-112.15398}
+        zoom={12}
+        className="min-h-screen w-screen"
+        mapElements={[
+          {
+            element: (
+              <img
+                className="translate-y-[-50%]"
+                width={40}
+                height={32}
+                src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Pin-location.png"
+              />
+            ),
+            latitude: 49.541125,
+            longitude: -112.15398,
+          },
+        ]}
+      />
     </div>
   );
 }
