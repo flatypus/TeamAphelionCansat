@@ -6,7 +6,8 @@ import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { TbTemperaturePlus } from "react-icons/tb";
 import { PiMountainsLight } from "react-icons/pi";
 import { GiPressureCooker } from "react-icons/gi";
-import { OfflineMap } from "../../../offline-map";
+import { Map } from "react-offline-maps";
+// import { Map } from "../../../offline-map";
 
 function domain(numbers: number[]) {
   return [Math.min(...numbers), Math.max(...numbers)];
@@ -104,7 +105,7 @@ export default function Page() {
   return (
     <div className="flex h-full min-h-screen w-screen flex-col items-center">
       {/* <Graphs /> */}
-      <OfflineMap
+      <Map
         config={{
           showCoordinates: true,
           showCenter: true,
