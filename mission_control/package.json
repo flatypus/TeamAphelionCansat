@@ -15,8 +15,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",
-    "react-offline-maps": "^0.1.0",
+    "react-offline-maps": "^0.1.1",
     "recharts": "^2.12.4",
+    "three": "^0.164.1",
     "usehooks-ts": "^2.9.1",
     "zustand": "^4.5.0"
   },
@@ -24,6 +25,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/three": "^0.164.0",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
