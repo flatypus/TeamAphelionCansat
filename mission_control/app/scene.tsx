@@ -6,8 +6,8 @@ import * as THREE from "three";
 import React, { useRef, useEffect, RefObject, useState } from "react";
 import { Orientation } from "@/lib/types";
 
-const WIDTH = 723;
-const HEIGHT = 410;
+const WIDTH = 360;
+const HEIGHT = 300;
 
 function ThreeScene({
   orientationRef,
@@ -16,9 +16,9 @@ function ThreeScene({
 }) {
   const containerRef = useRef<HTMLCanvasElement>(null);
   const [localOrientation, setLocalOrientation] = useState<Orientation>({
-    yaw: 0,
-    pitch: 0,
-    roll: 0,
+    gyroX: 0,
+    gyroY: 0,
+    gyroZ: 0,
   });
 
   useEffect(() => {
@@ -68,12 +68,9 @@ function ThreeScene({
 
     function animate() {
       if (!orientationRef.current) return;
-      let { yaw, pitch, roll } = orientationRef.current;
-      setLocalOrientation({ yaw, pitch, roll });
-      yaw = (yaw * Math.PI) / 180;
-      pitch = (pitch * Math.PI) / 180;
-      roll = (roll * Math.PI) / 180;
-      scene.children[1].children[0].rotation.set(pitch, yaw, roll);
+      let { gyroX, gyroY, gyroZ } = orientationRef.current;
+      setLocalOrientation({ gyroX, gyroY, gyroZ });
+      scene.children[1].children[0].rotation.set(gyroX, gyroY, gyroZ);
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
@@ -82,13 +79,12 @@ function ThreeScene({
 
   return (
     <>
-      <div className="absolute p-2">{`Yaw: ${localOrientation.yaw}, Pitch: ${localOrientation.pitch}, Roll: ${localOrientation.roll}`}</div>
-      <canvas
-        ref={containerRef}
-        width={WIDTH}
-        height={HEIGHT}
-        style={{ width: "100%", height: "100%" }}
-      />
+      <div className="select-none p-4">
+        <p>Gyro X: {localOrientation.gyroX}</p>
+        <p>Gyro Y: {localOrientation.gyroY}</p>
+        <p>Gyro Z: {localOrientation.gyroZ}</p>
+      </div>
+      <canvas ref={containerRef} width={WIDTH} height={HEIGHT} />
     </>
   );
 }

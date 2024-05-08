@@ -10,6 +10,9 @@ serial.subscribe((data) => queue.publish(data));
 
 const socket = new Socket(5001);
 
-socket.onConnection((ws) =>
-  queue.subscribe((data) => ws.send(JSON.stringify(data))),
-);
+socket.onConnection((ws) => {
+  ws.on("message", (data) => {
+    serial.write(data.toString());
+  });
+  queue.subscribe((data) => ws.send(JSON.stringify(data)));
+});

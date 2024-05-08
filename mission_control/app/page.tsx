@@ -52,8 +52,8 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
   const graphs: GraphReturn = {} as GraphReturn;
   for (let index = 0; index < GRAPH_KEYS.length; index++) {
     const key = GRAPH_KEYS[index];
-    // const valueList = data.map((point) => point[key]);
-    const valueList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const valueList = data.map((point) => point[key]);
+    // const valueList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     graphs[key] = (
       <div className="p-4">
         <div className="mb-4 flex flex-row items-center gap-2 text-base text-[#cccccc]">
@@ -67,7 +67,7 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
           key={key}
           width={440}
           height={200}
-          margin={{ top: 5, left: -30, right: 0, bottom: -15 }}
+          margin={{ top: 5, left: 20, right: 0, bottom: -15 }}
           data={valueList.map((point) => ({ [key]: point }))}
         >
           <XAxis dataKey="name" />
@@ -113,19 +113,29 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
 
 export default function Page() {
   const [data, setData] = useState<Data[]>([]);
+  const websocketRef = useRef<WebSocket>();
   const orientationRef = useRef<Orientation>({
-    yaw: 0,
-    pitch: 0,
-    roll: 0,
+    gyroX: 0,
+    gyroY: 0,
+    gyroZ: 0,
   });
 
   useEffect(() => {
+    const storedData = window.localStorage.getItem("data");
+    if (storedData) {
+      setData(JSON.parse(storedData));
+    }
     const ws = new WebSocket("ws://localhost:5001");
+    websocketRef.current = ws;
     ws.onmessage = (event) => {
       const newData = JSON.parse(event.data);
-      const { yaw, pitch, roll } = newData;
-      orientationRef.current = { yaw, pitch, roll };
-      setData((data) => [...data, newData]);
+      const { gyroX, gyroY, gyroZ } = newData;
+      orientationRef.current = { gyroX, gyroY, gyroZ };
+      setData((data) => {
+        const newArray = [...data, newData];
+        window.localStorage.setItem("data", JSON.stringify(newArray));
+        return newArray;
+      });
     };
   }, []);
 
@@ -141,7 +151,16 @@ export default function Page() {
   return (
     <div className="max-w-screen h-full min-h-screen w-full bg-gray p-5">
       <div className="grid h-full w-full grid-cols-5 divide-x-2 divide-[#6d6d6d] border-2 border-white border-opacity-30">
-        <div className="col-span-2 flex flex-col divide-y-2 divide-[#6d6d6d] overflow-hidden">
+        <div className="relative col-span-2 flex flex-col divide-y-2 divide-[#6d6d6d] overflow-hidden">
+          <button
+            className="absolute right-0 top-0 m-2 transform rounded-lg bg-blue-500 p-2 shadow-lg transition-all duration-300 ease-in-out hover:scale-110"
+            onClick={() => {
+              window.localStorage.removeItem("data");
+              setData([]);
+            }}
+          >
+            Clear Data
+          </button>
           {TemperatureGraph}
           {PressureGraph}
           <div className="relative w-full">
@@ -159,7 +178,7 @@ export default function Page() {
             }}
             latitude={49.541125}
             longitude={-112.15398}
-            zoom={12}
+            zoom={4}
             className="w-full] h-full"
             mapElements={[
               {
@@ -175,9 +194,31 @@ export default function Page() {
                 longitude: -112.15398,
               },
             ]}
+            mapLines={[
+              {
+                coordinates: data.map((point) => [
+                  point.latitude,
+                  point.longitude,
+                ]),
+              },
+            ]}
           />
-          <div className="relative h-full w-full">
-            <ThreeScene orientationRef={orientationRef} />
+          <div className="grid h-full w-full grid-cols-2">
+            <div className="relative col-span-1 h-full">
+              <ThreeScene orientationRef={orientationRef} />
+            </div>
+            <div className="grid grid-cols-3 grid-rows-3 gap-4 p-4">
+              {[...Array(9)].map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (!websocketRef.current) return;
+                    websocketRef.current.send(index.toString());
+                  }}
+                  className="h-full w-full rounded-lg border-2 border-white border-opacity-30 bg-white bg-opacity-5 shadow-lg transition-all hover:scale-105 hover:bg-opacity-10"
+                >{`Button ${index}`}</button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

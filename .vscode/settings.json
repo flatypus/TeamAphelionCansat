@@ -10,6 +10,12 @@
     "string_view": "cpp",
     "unordered_map": "cpp",
     "vector": "cpp",
-    "complex": "cpp"
+    "complex": "cpp",
+    "list": "cpp",
+    "istream": "cpp",
+    "bitset": "cpp",
+    "regex": "cpp",
+    "queue": "cpp",
+    "stack": "cpp"
   }
 }

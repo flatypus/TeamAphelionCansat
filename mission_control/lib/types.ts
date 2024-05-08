@@ -3,11 +3,14 @@ export const DATA_KEYS = [
   "pressure",
   "altitude",
   "relativeAltitude",
-  "yaw",
-  "pitch",
-  "roll",
   "latitude",
   "longitude",
+  "accelX",
+  "accelY",
+  "accelZ",
+  "gyroX",
+  "gyroY",
+  "gyroZ",
 ] as const;
 
 export type Data = Record<(typeof DATA_KEYS)[number], number>;
@@ -20,7 +23,7 @@ export const GRAPH_KEYS = [
 ] as const;
 
 export type Orientation = {
-  yaw: number;
-  pitch: number;
-  roll: number;
+  gyroX: number;
+  gyroY: number;
+  gyroZ: number;
 };
