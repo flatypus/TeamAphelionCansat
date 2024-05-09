@@ -9,8 +9,8 @@
 #include <TeensyThreads.h>
 #include <Wire.h>
 
-PWMServo weakServo;  // create servo object to control a servo
-PWMServo tinyServo;
+PWMServo tankServo; // create servo object to control a servo
+PWMServo verticalServo;
 
 #pragma region SensorObjects
 SoftwareSerial loraSerial(15, 14);
@@ -55,8 +55,10 @@ Threads::Mutex lora_lock;
 
 int factor = 1000;
 
-void mainSensorThread() {
-  while (1) {
+void mainSensorThread()
+{
+  while (1)
+  {
     sensor.read();
     accel.readSensor();
     gyro.readSensor();
@@ -80,9 +82,12 @@ void mainSensorThread() {
   }
 }
 
-void gpsThread() {
-  while (1) {
-    if (GPSGNSS.getPVT()) {
+void gpsThread()
+{
+  while (1)
+  {
+    if (GPSGNSS.getPVT())
+    {
       latitude = GPSGNSS.getLatitude() / 10e6;
       longitude = GPSGNSS.getLongitude() / 10e6;
     }
@@ -90,44 +95,49 @@ void gpsThread() {
   }
 }
 
-void executeCommand(int command){
-  switch (command) {
-    case 0:
-      tinyServo.write(60);
-      break;
-    case 2:
-      weakServo.write(180);
-      break;
-    case 3:
-      tinyServo.write(100);
-      break;
-    case 5:
-      weakServo.write(125);
-      break;
-    case 6:
-      tinyServo.write(150);
-      break;
-    case 8:
-      weakServo.write(102);
-      break;
-    default:
-      Serial.println("Unknown command");
-      break;
+void executeCommand(int command)
+{
+  switch (command)
+  {
+  case 0:
+    verticalServo.write(160);
+    break;
+  case 1:
+    verticalServo.write(100);
+    break;
+  case 2:
+    verticalServo.write(30);
+    break;
+  case 6:
+    tankServo.write(180);
+    break;
+  case 7:
+    tankServo.write(125);
+    break;
+  case 8:
+    tankServo.write(102);
+    break;
+  default:
+    Serial.println("Unknown command");
+    break;
   }
 }
 
-
-void read() {
+void read()
+{
   char data[255];
   int i = 0;
 
-  if (loraSerial.available()) {
-    while (loraSerial.available()) {
+  if (loraSerial.available())
+  {
+    while (loraSerial.available())
+    {
       data[i] = loraSerial.read();
       i++;
     }
     int command = parseMessage(data);
-    if (command != -1) {
+    if (command != -1)
+    {
       Serial.print("[Recieved]: ");
       Serial.println(command);
       executeCommand(command);
@@ -136,39 +146,45 @@ void read() {
   }
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(BAUD_RATE);
   loraSerial.begin(BAUD_RATE);
   Wire.begin();
   GPSWire.begin();
-  weakServo.attach(22);
-  tinyServo.attach(23);
+  tankServo.attach(22);
+  verticalServo.attach(23);
 
-  while (!loraSerial.isListening()) {
+  while (!loraSerial.isListening())
+  {
     Serial.println("LoRa is not listening!! Check something");
     delay(1000);
   }
   Serial.println("LoRa is listening!");
 
-  while (!sensor.begin()) {
+  while (!sensor.begin())
+  {
     Serial.println("ms5611 not found, check wiring!");
     delay(1000);
   }
   Serial.println("ms5611 found!");
 
-  while (GPSGNSS.begin(GPSWire, gnssAddress) == false) {
+  while (GPSGNSS.begin(GPSWire, gnssAddress) == false)
+  {
     Serial.println(F("u-blox GNSS not detected. Retrying..."));
     delay(1000);
   }
   Serial.println("GNSS module detected!");
 
-  while (accel.begin() < 0) {
+  while (accel.begin() < 0)
+  {
     Serial.println("Accel Initialization Error");
     delay(1000);
   }
   Serial.println("Acceleration initialized!");
 
-  while (gyro.begin() < 0) {
+  while (gyro.begin() < 0)
+  {
     Serial.println("Gyro Initialization Error");
     delay(1000);
   }
@@ -184,7 +200,8 @@ void setup() {
   threads.addThread(gpsThread);
 }
 
-void println(const char *data) {
+void println(const char *data)
+{
   threads.suspend(1);
   threads.suspend(2);
   int dataLength = strlen(data);
@@ -198,9 +215,12 @@ void println(const char *data) {
   threads.restart(2);
 }
 
-void loop() {
-  for (int i = 0; i < 10; i++) {
-    if (confirmation == 1) {
+void loop()
+{
+  for (int i = 0; i < 10; i++)
+  {
+    if (confirmation == 1)
+    {
       break;
     }
     read();
@@ -209,11 +229,12 @@ void loop() {
 
   char buffer[255];
   sprintf(
-    buffer,
-    "%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i",
-    realTemperature, realPressure, realAltitude, relativeAltitude, latitude, longitude, accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
+      buffer,
+      "%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i",
+      realTemperature, realPressure, realAltitude, relativeAltitude, latitude, longitude, accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
 
-  if (confirmation == 1) {
+  if (confirmation == 1)
+  {
     confirmation = 0;
     delay(250);
   }

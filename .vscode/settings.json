@@ -16,6 +16,7 @@
     "bitset": "cpp",
     "regex": "cpp",
     "queue": "cpp",
-    "stack": "cpp"
+    "stack": "cpp",
+    "ostream": "cpp"
   }
 }

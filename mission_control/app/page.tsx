@@ -227,8 +227,8 @@ export default function Page() {
             <div className="relative col-span-1 h-full overflow-hidden">
               <ThreeScene orientationRef={orientationRef} />
             </div>
-            <div className="grid grid-cols-3 grid-rows-3 gap-4 p-4">
-              {[...Array(9)].map((_, index) => (
+            <div className="grid grid-cols-3 grid-rows-4 gap-4 p-4">
+              {commandMap.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => {
