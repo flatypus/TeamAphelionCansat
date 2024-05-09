@@ -38,27 +38,19 @@ void setup()
   Wire.begin();
   GPSWire.begin();
 
-  if (loraSerial.isListening())
-  {
-    Serial.println("LoRa is listening!");
-  }
-  else
+  while (!loraSerial.isListening())
   {
     Serial.println("LoRa is not listening!! Check something");
-    while (1)
-      ;
+    delay(1000);
   }
+  Serial.println("LoRa is listening!");
 
-  if (sensor.begin())
-  {
-    Serial.println("ms5611 found!");
-  }
-  else
+  while (!sensor.begin())
   {
     Serial.println("ms5611 not found, check wiring!");
-    while (1)
-      ;
+    delay(1000);
   }
+  Serial.println("ms5611 found!");
 
   while (GPSGNSS.begin(GPSWire, gnssAddress) == false)
   {
@@ -67,31 +59,19 @@ void setup()
   }
   Serial.println("GNSS module detected!");
 
-  int status = accel.begin();
-  if (status < 0)
+  while (accel.begin() < 0)
   {
     Serial.println("Accel Initialization Error");
-    Serial.println(status);
-    while (1)
-      ;
+    delay(1000);
   }
-  else
-  {
-    Serial.println("Acceleration initialized!");
-  }
+  Serial.println("Acceleration initialized!");
 
-  status = gyro.begin();
-  if (status < 0)
+  while (gyro.begin() < 0)
   {
     Serial.println("Gyro Initialization Error");
-    Serial.println(status);
-    while (1)
-      ;
+    delay(1000);
   }
-  else
-  {
-    Serial.println("Gyro Initialized!");
-  }
+  Serial.println("Gyro Initialized!");
 
   sensor.read();
   referencePressure = sensor.getPressure();
@@ -105,6 +85,8 @@ void println(const char *data)
   int dataLength = strlen(data);
   char *str = (char *)malloc(15 + dataLength + (dataLength / 10));
   sprintf(str, "AT+SEND=69,%d,%s", dataLength, data);
+  Serial.print("[Sending]: ");
+  Serial.println(str);
   loraSerial.println(str);
   free(str);
 }
