@@ -9,37 +9,30 @@
 #include <TeensyThreads.h>
 #include <Wire.h>
 
-SoftwareSerial lora(15, 14);
+#pragma region SensorObjects
+SoftwareSerial loraSerial(15, 14);
 MS5611 sensor;
 SFE_UBLOX_GNSS GPSGNSS;
 Bmi088Accel accel(Wire, 0x18);
 Bmi088Gyro gyro(Wire, 0x68);
+#pragma endregion
 
-#define SEALEVELPRESSURE_HPA (1013.25)
 #define GPSWire Wire1
 #define gnssAddress 0x42
 
+// reference pressure and altitude
 float referencePressure;
 float referenceAltitude;
+
 long BAUD_RATE = 57600;
 
-// Sampling frequency
-const float f_s = 100; // Hz
-
-// Cut-off frequency (-3 dB)
-const float f_c = 40; // Hz
-
-// Normalized cut-off frequency
+// magic numbers for the butterworth filter
+const float f_s = 100;
+const float f_c = 40;
 const float f_n = 2 * f_c / f_s;
-
-// Sixth-order Butterworth filter
 auto filter = butter<6>(f_n);
 
-float altitude(float pressure)
-{
-  return 44308 * (1 - pow((pressure / SEALEVELPRESSURE_HPA), 0.190284));
-}
-
+#pragma region GlobalVariables
 volatile float realTemperature;
 volatile float rawPressure;
 volatile float realPressure;
@@ -53,75 +46,62 @@ volatile float gyroY;
 volatile float gyroZ;
 volatile float latitude;
 volatile float longitude;
+#pragma endregion
 
-Threads::Mutex mutexTemp, mutexPress, mutexAccel, mutexGyro, mutexGPS;
-
-void temperatureThread()
+void sensorThread()
 {
-    while(1)
-    {
-        Threads::Scope scope(mutexTemp);
-        sensor.read();
-        realTemperature = sensor.getTemperature();
-    }
+  while (1)
+  {
+    sensor.read();
+    accel.readSensor();
+    gyro.readSensor();
+
+    realTemperature = sensor.getTemperature();
+    rawPressure = sensor.getPressure();
+    realPressure = filter(rawPressure);
+    realAltitude = altitude(realPressure);
+    relativeAltitude = realAltitude - referenceAltitude;
+
+    accelX = accel.getAccelX_mss();
+    accelY = accel.getAccelY_mss();
+    accelZ = accel.getAccelZ_mss();
+    gyroX = gyro.getGyroX_rads();
+    gyroY = gyro.getGyroY_rads();
+    gyroZ = gyro.getGyroZ_rads();
+  }
 }
 
-void pressureThread()
+void gpsThread()
 {
-    while(1)
+  while (1)
+  {
+    if (GPSGNSS.getPVT() == true)
     {
-        Threads::Scope scope(mutexPress);
-        sensor.read();
-        rawPressure = sensor.getPressure();
-        realPressure = filter(rawPressure);
-        realAltitude = altitude(realPressure);
-        relativeAltitude = realAltitude - referenceAltitude;
+      latitude = GPSGNSS.getLatitude();
+      longitude = GPSGNSS.getLongitude();
     }
+  }
 }
 
-void accelThread()
+void println(const char *data)
 {
-    while(1)
-    {
-        Threads::Scope scope(mutexAccel);
-        accel.readSensor();
-        accelX = accel.getAccelX_mss();
-        accelY = accel.getAccelY_mss();
-        accelZ = accel.getAccelZ_mss();
-    }
-}
-
-void gyroThread()
-{
-    while(1)
-    {
-        Threads::Scope scope(mutexGyro);
-        gyro.readSensor();
-        gyroX = gyro.getGyroX_rads();
-        gyroY = gyro.getGyroY_rads();
-        gyroZ = gyro.getGyroZ_rads();
-    }
-}
-
-void GPSThread()
-{
-    while(1)
-    {
-        Threads::Scope scope(mutexGPS);
-        GPSGNSS.getPVT();
-        latitude = GPSGNSS.getLatitude() / 10e6;
-        longitude = GPSGNSS.getLongitude() / 10e6;
-    }
+  int dataLength = strlen(data);
+  char *str = (char *)malloc(19 + dataLength + (dataLength / 10));
+  sprintf(str, "AT+SEND=69,%d,%s\r\n", dataLength, data);
+  Serial.print("[Sending]: ");
+  Serial.println(str);
+  loraSerial.write(str);
+  free(str);
 }
 
 void setup()
 {
   Serial.begin(BAUD_RATE);
-  lora.begin(BAUD_RATE);
+  loraSerial.begin(BAUD_RATE);
   Wire.begin();
   GPSWire.begin();
 
-  if (lora.isListening())
+  if (loraSerial.isListening())
   {
     Serial.println("LoRa is listening!");
   }
@@ -181,39 +161,36 @@ void setup()
   referenceAltitude = altitude(referencePressure);
   sensor.setOversampling(OSR_ULTRA_HIGH);
   GPSGNSS.setI2COutput(COM_TYPE_UBX);
-  
-  threads.addThread(temperatureThread);
-  threads.addThread(pressureThread);
-  threads.addThread(accelThread);
-  threads.addThread(gyroThread);
-  threads.addThread(GPSThread);
-}
 
-void println(const char *data)
-{
-  int dataLength = strlen(data);
-  char *str = (char *)malloc(15 + dataLength + (dataLength / 10));
-  sprintf(str, "AT+SEND=420,%d,%s", dataLength, data);
-  lora.println(str);
-  free(str);
+  threads.addThread(sensorThread);
+  threads.addThread(gpsThread);
 }
 
 void loop()
 {
+  char data[255];
+  int i = 0;
+
+  if (loraSerial.available())
   {
-    Threads::Scope tempScope(mutexTemp);
-    Threads::Scope pressScope(mutexPress);
-    Threads::Scope accelScope(mutexAccel);
-    Threads::Scope gyroScope(mutexGyro);
-    Threads::Scope GPSScope(mutexGPS);
-
-    char buffer[255];
-    sprintf(buffer,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", realTemperature, realPressure, realAltitude, relativeAltitude, 
-    latitude, longitude, accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
-
-    Serial.println(buffer);
-    println(buffer);
+    while (loraSerial.available())
+    {
+      data[i] = loraSerial.read();
+      i++;
+    }
+    int command = parseMessage(data);
+    if (command != -1)
+    {
+      Serial.print("[Recieved]: ");
+      Serial.println(command);
+    }
   }
 
-  threads.yield();
+  char buffer[255];
+  sprintf(
+      buffer,
+      "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+      realTemperature, realPressure, realAltitude, relativeAltitude, latitude, longitude, accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
+
+  println(buffer);
 }

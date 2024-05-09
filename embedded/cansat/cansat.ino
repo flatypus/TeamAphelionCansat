@@ -20,7 +20,6 @@ Bmi088Gyro gyro(Wire, 0x68);
 #define GPSWire Wire1
 #define gnssAddress 0x42
 
-// reference pressure and altitude
 float referencePressure;
 float referenceAltitude;
 
@@ -31,68 +30,6 @@ const float f_s = 100;
 const float f_c = 40;
 const float f_n = 2 * f_c / f_s;
 auto filter = butter<6>(f_n);
-
-#pragma region GlobalVariables
-volatile float realTemperature;
-volatile float rawPressure;
-volatile float realPressure;
-volatile float realAltitude;
-volatile float relativeAltitude;
-volatile float accelX;
-volatile float accelY;
-volatile float accelZ;
-volatile float gyroX;
-volatile float gyroY;
-volatile float gyroZ;
-volatile float latitude;
-volatile float longitude;
-#pragma endregion
-
-void sensorThread()
-{
-  while (1)
-  {
-    sensor.read();
-    accel.readSensor();
-    gyro.readSensor();
-
-    realTemperature = sensor.getTemperature();
-    rawPressure = sensor.getPressure();
-    realPressure = filter(rawPressure);
-    realAltitude = altitude(realPressure);
-    relativeAltitude = realAltitude - referenceAltitude;
-
-    accelX = accel.getAccelX_mss();
-    accelY = accel.getAccelY_mss();
-    accelZ = accel.getAccelZ_mss();
-    gyroX = gyro.getGyroX_rads();
-    gyroY = gyro.getGyroY_rads();
-    gyroZ = gyro.getGyroZ_rads();
-  }
-}
-
-void gpsThread()
-{
-  while (1)
-  {
-    if (GPSGNSS.getPVT() == true)
-    {
-      latitude = GPSGNSS.getLatitude();
-      longitude = GPSGNSS.getLongitude();
-    }
-  }
-}
-
-void println(const char *data)
-{
-  int dataLength = strlen(data);
-  char *str = (char *)malloc(19 + dataLength + (dataLength / 10));
-  sprintf(str, "AT+SEND=69,%d,%s\r\n", dataLength, data);
-  Serial.print("[Sending]: ");
-  Serial.println(str);
-  loraSerial.write(str);
-  free(str);
-}
 
 void setup()
 {
@@ -161,30 +98,42 @@ void setup()
   referenceAltitude = altitude(referencePressure);
   sensor.setOversampling(OSR_ULTRA_HIGH);
   GPSGNSS.setI2COutput(COM_TYPE_UBX);
+}
 
-  threads.addThread(sensorThread);
-  threads.addThread(gpsThread);
+void println(const char *data)
+{
+  int dataLength = strlen(data);
+  char *str = (char *)malloc(15 + dataLength + (dataLength / 10));
+  sprintf(str, "AT+SEND=69,%d,%s", dataLength, data);
+  loraSerial.println(str);
+  free(str);
 }
 
 void loop()
 {
-  char data[255];
-  int i = 0;
+  sensor.read();
+  accel.readSensor();
+  gyro.readSensor();
 
-  if (loraSerial.available())
-  {
-    while (loraSerial.available())
-    {
-      data[i] = loraSerial.read();
-      i++;
-    }
-    int command = parseMessage(data);
-    if (command != -1)
-    {
-      Serial.print("[Recieved]: ");
-      Serial.println(command);
-    }
-  }
+  float realTemperature = sensor.getTemperature();
+  float rawPressure = sensor.getPressure();
+  float realPressure = filter(rawPressure);
+  float realAltitude = altitude(realPressure);
+  float relativeAltitude = realAltitude - referenceAltitude;
+  float latitude = 0;
+  float longitude = 0;
+  float accelX = accel.getAccelX_mss();
+  float accelY = accel.getAccelY_mss();
+  float accelZ = accel.getAccelZ_mss();
+  float gyroX = gyro.getGyroX_rads();
+  float gyroY = gyro.getGyroY_rads();
+  float gyroZ = gyro.getGyroZ_rads();
+
+  // if (GPSGNSS.getPVT())
+  // {
+  //   latitude = GPSGNSS.getLatitude() / 10e6;
+  //   longitude = GPSGNSS.getLongitude() / 10e6;
+  // }
 
   char buffer[255];
   sprintf(
@@ -193,4 +142,5 @@ void loop()
       realTemperature, realPressure, realAltitude, relativeAltitude, latitude, longitude, accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
 
   println(buffer);
+  delay(1000);
 }
