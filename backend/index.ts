@@ -12,6 +12,7 @@ const socket = new Socket(5001);
 
 socket.onConnection((ws) => {
   ws.on("message", (data) => {
+    console.log("[Sending to Arduino]: ", data.toString());
     serial.write(data.toString());
   });
   queue.subscribe((data) => ws.send(JSON.stringify(data)));

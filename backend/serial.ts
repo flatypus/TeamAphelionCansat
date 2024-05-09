@@ -6,7 +6,7 @@ export class Serial {
   private serialport: SerialPort;
   constructor() {
     this.serialport = new SerialPort({
-      path: "/dev/tty.usbserial-0001",
+      path: "/dev/cu.usbserial-0001",
       baudRate: 57600,
     });
 
