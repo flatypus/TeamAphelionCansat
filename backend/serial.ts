@@ -40,7 +40,7 @@ export class Serial {
       if (count === 10) {
         clearInterval(this.spamInterval!);
         this.spamInterval = null;
-        this.toastCallback?.(`${this.lastCommand} was executed`);
+        this.toastCallback?.(this.lastCommand!);
         this.lastCommand = null;
       }
     }, 150);

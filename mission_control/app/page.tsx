@@ -1,12 +1,13 @@
 "use client";
 
+import { commandMap } from "@/lib/constants";
 import { Data, GRAPH_KEYS, Orientation } from "@/lib/types";
-import { useEffect, useRef, useState } from "react";
-import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
-import { TbTemperaturePlus } from "react-icons/tb";
-import { PiMountainsLight } from "react-icons/pi";
 import { GiPressureCooker } from "react-icons/gi";
+import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { Map } from "react-offline-maps";
+import { PiMountainsLight } from "react-icons/pi";
+import { TbTemperaturePlus } from "react-icons/tb";
+import { useEffect, useRef, useState } from "react";
 import ThreeScene from "./scene";
 
 // import { Map } from "../../../offline-map/src/index";
@@ -159,10 +160,10 @@ export default function Page() {
   return (
     <div className="max-w-screen relative h-full min-h-screen w-full bg-gray p-5">
       {toasts.length > 0 && (
-        <div className="absolute bottom-4 right-4 rounded-lg bg-white bg-opacity-10 p-2 shadow-lg">
+        <div className="absolute bottom-4 right-4 flex flex-col gap-4 rounded-lg bg-[#868686] p-2 shadow-lg">
           {toasts.map((toast, index) => (
             <div key={index} className="rounded-lg bg-white bg-opacity-50 p-2">
-              {toast}
+              {commandMap[parseInt(toast)]} was executed
             </div>
           ))}
         </div>
@@ -233,7 +234,9 @@ export default function Page() {
                     websocketRef.current.send(index.toString());
                   }}
                   className="h-full w-full rounded-lg border-2 border-white border-opacity-30 bg-white bg-opacity-5 shadow-lg transition-all hover:scale-105 hover:bg-opacity-10"
-                >{`Button ${index}`}</button>
+                >
+                  {commandMap[index]}
+                </button>
               ))}
             </div>
           </div>
