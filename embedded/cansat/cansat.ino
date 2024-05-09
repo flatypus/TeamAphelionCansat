@@ -6,53 +6,92 @@
 #include <MS5611.h>
 #include <SparkFun_u-blox_GNSS_v3.h>
 #include <SPI.h>
+#include <TeensyThreads.h>
 #include <Wire.h>
 
+#pragma region SensorObjects
 SoftwareSerial loraSerial(15, 14);
 MS5611 sensor;
 SFE_UBLOX_GNSS GPSGNSS;
 Bmi088Accel accel(Wire, 0x18);
 Bmi088Gyro gyro(Wire, 0x68);
+#pragma endregion
 
-#define SEALEVELPRESSURE_HPA (1013.25)
 #define GPSWire Wire1
 #define gnssAddress 0x42
 
+// reference pressure and altitude
 float referencePressure;
 float referenceAltitude;
+
 long BAUD_RATE = 57600;
 
-// Sampling frequency
-const float f_s = 100; // Hz
-
-// Cut-off frequency (-3 dB)
-const float f_c = 40; // Hz
-
-// Normalized cut-off frequency
+// magic numbers for the butterworth filter
+const float f_s = 100;
+const float f_c = 40;
 const float f_n = 2 * f_c / f_s;
-
-// Sixth-order Butterworth filter
 auto filter = butter<6>(f_n);
 
-float altitude(float pressure)
+#pragma region GlobalVariables
+volatile float realTemperature;
+volatile float rawPressure;
+volatile float realPressure;
+volatile float realAltitude;
+volatile float relativeAltitude;
+volatile float accelX;
+volatile float accelY;
+volatile float accelZ;
+volatile float gyroX;
+volatile float gyroY;
+volatile float gyroZ;
+volatile float latitude;
+volatile float longitude;
+#pragma endregion
+
+void sensorThread()
 {
-  return 44308 * (1 - pow((pressure / SEALEVELPRESSURE_HPA), 0.190284));
+  while (1)
+  {
+    sensor.read();
+    accel.readSensor();
+    gyro.readSensor();
+
+    realTemperature = sensor.getTemperature();
+    rawPressure = sensor.getPressure();
+    realPressure = filter(rawPressure);
+    realAltitude = altitude(realPressure);
+    relativeAltitude = realAltitude - referenceAltitude;
+
+    accelX = accel.getAccelX_mss();
+    accelY = accel.getAccelY_mss();
+    accelZ = accel.getAccelZ_mss();
+    gyroX = gyro.getGyroX_rads();
+    gyroY = gyro.getGyroY_rads();
+    gyroZ = gyro.getGyroZ_rads();
+  }
 }
 
-int parseMessage(char *msg)
+void gpsThread()
 {
-  char *token = strtok(msg, ",");
-  int counter = 0;
-  while (token != NULL)
+  while (1)
   {
-    if (counter == 2)
+    if (GPSGNSS.getPVT() == true)
     {
-      return atoi(token);
+      latitude = GPSGNSS.getLatitude();
+      longitude = GPSGNSS.getLongitude();
     }
-    token = strtok(NULL, ",");
-    counter++;
   }
-  return -1;
+}
+
+void println(const char *data)
+{
+  int dataLength = strlen(data);
+  char *str = (char *)malloc(19 + dataLength + (dataLength / 10));
+  sprintf(str, "AT+SEND=69,%d,%s\r\n", dataLength, data);
+  Serial.print("[Sending]: ");
+  Serial.println(str);
+  loraSerial.write(str);
+  free(str);
 }
 
 void setup()
@@ -122,17 +161,9 @@ void setup()
   referenceAltitude = altitude(referencePressure);
   sensor.setOversampling(OSR_ULTRA_HIGH);
   GPSGNSS.setI2COutput(COM_TYPE_UBX);
-}
 
-void println(const char *data)
-{
-  Serial.print("[Sending]: ");
-  Serial.println(data);
-  int dataLength = strlen(data);
-  char *str = (char *)malloc(19 + dataLength + (dataLength / 10));
-  sprintf(str, "AT+SEND=69,%d,%s\r\n", dataLength, data);
-  loraSerial.write(str);
-  free(str);
+  threads.addThread(sensorThread);
+  threads.addThread(gpsThread);
 }
 
 void loop()
@@ -148,35 +179,11 @@ void loop()
       i++;
     }
     int command = parseMessage(data);
-    if (command != -1){
+    if (command != -1)
+    {
       Serial.print("[Recieved]: ");
       Serial.println(command);
     }
-  }
-
-  sensor.read();
-  accel.readSensor();
-  gyro.readSensor();
-
-  float realTemperature = sensor.getTemperature();
-  float rawPressure = sensor.getPressure();
-  float realPressure = filter(rawPressure);
-  float realAltitude = altitude(realPressure);
-  float relativeAltitude = realAltitude - referenceAltitude;
-  float latitude = 0;
-  float longitude = 0;
-
-  float accelX = accel.getAccelX_mss();
-  float accelY = accel.getAccelY_mss();
-  float accelZ = accel.getAccelZ_mss();
-  float gyroX = gyro.getGyroX_rads();
-  float gyroY = gyro.getGyroY_rads();
-  float gyroZ = gyro.getGyroZ_rads();
-
-  if (GPSGNSS.getPVT())
-  {
-    latitude = GPSGNSS.getLatitude() / 10e6;
-    longitude = GPSGNSS.getLongitude() / 10e6;
   }
 
   char buffer[255];
