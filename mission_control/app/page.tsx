@@ -114,6 +114,7 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
 export default function Page() {
   const [data, setData] = useState<Data[]>([]);
   const websocketRef = useRef<WebSocket>();
+  const [toasts, setToasts] = useState<string[]>([]);
   const orientationRef = useRef<Orientation>({
     gyroX: 0,
     gyroY: 0,
@@ -129,6 +130,13 @@ export default function Page() {
     websocketRef.current = ws;
     ws.onmessage = (event) => {
       const newData = JSON.parse(event.data);
+      if (newData?.type === "toast") {
+        setToasts((toasts) => [...toasts, newData.data]);
+        setTimeout(() => {
+          setToasts((toasts) => toasts.slice(1));
+        }, 5000);
+        return;
+      }
       const { gyroX, gyroY, gyroZ } = newData;
       orientationRef.current = { gyroX, gyroY, gyroZ };
       setData((data) => {
@@ -149,7 +157,16 @@ export default function Page() {
   const [RelativeSwitch, relative] = useSwitch();
 
   return (
-    <div className="max-w-screen h-full min-h-screen w-full bg-gray p-5">
+    <div className="max-w-screen relative h-full min-h-screen w-full bg-gray p-5">
+      {toasts.length > 0 && (
+        <div className="absolute bottom-4 right-4 rounded-lg bg-white bg-opacity-10 p-2 shadow-lg">
+          {toasts.map((toast, index) => (
+            <div key={index} className="rounded-lg bg-white bg-opacity-50 p-2">
+              {toast}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid h-full w-full grid-cols-5 divide-x-2 divide-[#6d6d6d] border-2 border-white border-opacity-30">
         <div className="relative col-span-2 flex flex-col divide-y-2 divide-[#6d6d6d] overflow-hidden">
           <button
@@ -204,7 +221,7 @@ export default function Page() {
             ]}
           />
           <div className="grid h-full w-full grid-cols-2">
-            <div className="relative col-span-1 h-full">
+            <div className="relative col-span-1 h-full overflow-hidden">
               <ThreeScene orientationRef={orientationRef} />
             </div>
             <div className="grid grid-cols-3 grid-rows-3 gap-4 p-4">

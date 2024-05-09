@@ -11,6 +11,10 @@ serial.subscribe((data) => queue.publish(data));
 const socket = new Socket(5001);
 
 socket.onConnection((ws) => {
+  serial.setToastCallback((data) => {
+    ws.send(JSON.stringify({ type: "toast", data }));
+  });
+
   ws.on("message", (data) => {
     console.log("[Sending to Arduino]: ", data.toString());
     serial.write(data.toString());
