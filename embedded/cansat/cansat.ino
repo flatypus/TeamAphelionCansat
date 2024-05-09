@@ -90,6 +90,33 @@ void gpsThread() {
   }
 }
 
+void executeCommand(int command){
+  switch (command) {
+    case 0:
+      tinyServo.write(60);
+      break;
+    case 2:
+      weakServo.write(180);
+      break;
+    case 3:
+      tinyServo.write(100);
+      break;
+    case 5:
+      weakServo.write(125);
+      break;
+    case 6:
+      tinyServo.write(150);
+      break;
+    case 8:
+      weakServo.write(102);
+      break;
+    default:
+      Serial.println("Unknown command");
+      break;
+  }
+}
+
+
 void read() {
   char data[255];
   int i = 0;
@@ -103,6 +130,7 @@ void read() {
     if (command != -1) {
       Serial.print("[Recieved]: ");
       Serial.println(command);
+      executeCommand(command);
       confirmation = 1;
     }
   }

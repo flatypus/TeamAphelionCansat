@@ -2,7 +2,7 @@ export const commandMap = [
   "Drill Up",
   "Motor Forward",
   "Rest chamber",
-  "Drill Stop",
+  "Drill Hold",
   "Motor Stop",
   "Water",
   "Drill Down",

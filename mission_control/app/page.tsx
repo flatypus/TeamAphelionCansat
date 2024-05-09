@@ -116,6 +116,7 @@ export default function Page() {
   const [data, setData] = useState<Data[]>([]);
   const websocketRef = useRef<WebSocket>();
   const [toasts, setToasts] = useState<string[]>([]);
+  const [canExecute, setCanExecute] = useState<boolean>(true);
   const orientationRef = useRef<Orientation>({
     gyroX: 0,
     gyroY: 0,
@@ -133,9 +134,10 @@ export default function Page() {
       const newData = JSON.parse(event.data);
       if (newData?.type === "toast") {
         setToasts((toasts) => [...toasts, newData.data]);
+        setCanExecute(true);
         setTimeout(() => {
           setToasts((toasts) => toasts.slice(1));
-        }, 5000);
+        }, 3000);
         return;
       }
       const { gyroX, gyroY, gyroZ } = newData;
@@ -160,7 +162,7 @@ export default function Page() {
   return (
     <div className="max-w-screen relative h-full min-h-screen w-full bg-gray p-5">
       {toasts.length > 0 && (
-        <div className="absolute bottom-4 right-4 flex flex-col gap-4 rounded-lg bg-[#868686] p-2 shadow-lg">
+        <div className="absolute bottom-4 left-4 flex flex-col gap-4 rounded-lg bg-[#868686] p-2 shadow-lg">
           {toasts.map((toast, index) => (
             <div key={index} className="rounded-lg bg-white bg-opacity-50 p-2">
               {commandMap[parseInt(toast)]} was executed
@@ -230,9 +232,11 @@ export default function Page() {
                 <button
                   key={index}
                   onClick={() => {
-                    if (!websocketRef.current) return;
+                    if (!websocketRef.current || !canExecute) return;
+                    setCanExecute(false);
                     websocketRef.current.send(index.toString());
                   }}
+                  style={{ cursor: canExecute ? "pointer" : "not-allowed" }}
                   className="h-full w-full rounded-lg border-2 border-white border-opacity-30 bg-white bg-opacity-5 shadow-lg transition-all hover:scale-105 hover:bg-opacity-10"
                 >
                   {commandMap[index]}
