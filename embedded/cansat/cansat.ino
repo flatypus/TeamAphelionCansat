@@ -4,6 +4,7 @@
 #include <Filters/Butterworth.hpp>
 #include <MS5611.h>
 #include <PWMServo.h>
+#include <Servo.h>
 #include <SparkFun_u-blox_GNSS_v3.h>
 #include <SPI.h>
 #include <TeensyThreads.h>
@@ -11,6 +12,7 @@
 
 PWMServo tankServo; // create servo object to control a servo
 PWMServo verticalServo;
+Servo drill;
 
 #pragma region SensorObjects
 SoftwareSerial loraSerial(15, 14);
@@ -97,26 +99,51 @@ void gpsThread()
 
 void executeCommand(int command)
 {
+  int position;
   switch (command)
   {
-  case 0:
+  case 0: // Move drill up
     verticalServo.write(160);
     break;
-  case 1:
+  case 1: // Hold drill
     verticalServo.write(100);
     break;
-  case 2:
+  case 2: // Move drill down
     verticalServo.write(30);
     break;
-  case 6:
+  case 3: // Drill start
+    position = drill.readMicroseconds();
+    if (position != 1000)
+      return;
+    for (int i = 0; i < 7; i++)
+    {
+      drill.writeMicroseconds(1300 + i * 100);
+      delay(1000);
+    }
+    break;
+  case 4: // Drill stop
+    drill.writeMicroseconds(1000);
+    break;
+  case 6: // Rest chamber
     tankServo.write(180);
     break;
-  case 7:
+  case 7: // Water chamber
     tankServo.write(125);
     break;
-  case 8:
+  case 8: // Test chamber
     tankServo.write(102);
     break;
+  case 9: // FPV ON
+    digitalWrite(12, HIGH);
+    break;
+  case 10: // FPV OFF
+    digitalWrite(12, LOW);
+    break;
+  case 11: // Landing legs
+    digitalWrite(10, HIGH);
+    delay(100);
+    digitalWrite(10, LOW);
+    break;  
   default:
     Serial.println("Unknown command");
     break;
@@ -152,8 +179,16 @@ void setup()
   loraSerial.begin(BAUD_RATE);
   Wire.begin();
   GPSWire.begin();
-  tankServo.attach(22);
-  verticalServo.attach(23);
+  verticalServo.attach(22);
+  tankServo.attach(23);
+  pinMode(10, OUTPUT);
+  pinMode(12, OUTPUT);
+  drill.attach(9, 1000, 2000);
+  drill.writeMicroseconds(1000);
+  delay(500);
+  drill.writeMicroseconds(1100);
+  delay(1000);
+  drill.writeMicroseconds(1000);
 
   while (!loraSerial.isListening())
   {

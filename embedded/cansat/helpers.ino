@@ -1,7 +1,7 @@
 #include <math.h>
 #include <cstring>
 
-#define SEALEVELPRESSURE_HPA (1013.25)
+#define SEALEVELPRESSURE_HPA (1015.2)
 
 float altitude(float pressure)
 {

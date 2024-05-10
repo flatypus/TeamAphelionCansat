@@ -8,7 +8,8 @@ export const commandMap = [
   "Rest chamber",
   "Water chamber",
   "Test chamber",
-  "Parachute Release",
+  "FPV ON",
+  "FPV OFF",
   "Landing Legs",
   "Begin Auto Sequence",
 ];

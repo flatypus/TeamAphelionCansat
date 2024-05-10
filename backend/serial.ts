@@ -34,6 +34,7 @@ export class Serial {
     this.lastCommand = msg;
     let count = 0;
     this.spamInterval = setInterval(() => {
+      console.log("[Sending to Arduino]: ", msg);
       const message = `AT+SEND=420,${msg.length},${msg}\r\n`;
       this.serialport.write(message);
       count += 1;
