@@ -1,10 +1,11 @@
 "use client";
 
-import { commandMap } from "@/lib/constants";
+import { MODEL_DATA, commandMap } from "@/lib/constants";
 import { Data, GRAPH_KEYS, Orientation } from "@/lib/types";
 import { GiPressureCooker } from "react-icons/gi";
 import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { Map } from "react-offline-maps";
+// import { Map } from "../../../offline-map/src/index";
 import { PiMountainsLight } from "react-icons/pi";
 import { TbTemperaturePlus } from "react-icons/tb";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +15,15 @@ import ThreeScene from "./scene";
 function domain(numbers: number[]) {
   return [Math.min(...numbers), Math.max(...numbers)];
 }
+
+const movingAverage = (array: number[], windowSize: number) => {
+  const movingAverageArray = [];
+  for (let i = 0; i < array.length - windowSize; i++) {
+    const sum = array.slice(i, i + windowSize).reduce((a, b) => a + b, 0);
+    movingAverageArray.push(sum / windowSize);
+  }
+  return movingAverageArray;
+};
 
 function Icon({ icon }: { icon: string }) {
   switch (icon) {
@@ -52,7 +62,22 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
   const graphs: GraphReturn = {} as GraphReturn;
   for (let index = 0; index < GRAPH_KEYS.length; index++) {
     const key = GRAPH_KEYS[index];
-    const valueList = data.map((point) => point[key]);
+    const valueList = data.map((point) =>
+      key === "altitude"
+        ? point[key] + 80
+        : key === "temperature"
+          ? point[key] - 15
+          : point[key],
+    );
+
+    const movingAverageValueList = movingAverage(valueList, 20);
+    const keyedValueList = valueList.map((point, index) => {
+      return {
+        [key]: point,
+        [`average-${key}`]: movingAverageValueList[index],
+      };
+    });
+
     // const valueList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     graphs[key] = (
       <div className="p-4">
@@ -68,7 +93,7 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
           width={440}
           height={200}
           margin={{ top: 5, left: 20, right: 0, bottom: -15 }}
-          data={valueList.map((point) => ({ [key]: point }))}
+          data={keyedValueList}
         >
           <XAxis dataKey="name" />
           <YAxis
@@ -98,6 +123,15 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
             type="monotone"
             dataKey={key}
             stroke="#21b2aa"
+            animationEasing="ease-in-out"
+            animationDuration={10}
+            dot={false}
+            strokeWidth={2}
+          />
+          <Line
+            type="monotone"
+            dataKey={`average-${key}`}
+            stroke="#b22121"
             animationEasing="ease-in-out"
             animationDuration={10}
             dot={false}
@@ -204,7 +238,7 @@ export default function Page() {
             }}
             latitude={49.541125}
             longitude={-112.15398}
-            zoom={1}
+            zoom={4}
             className="w-full] h-full"
             mapElements={[
               {
@@ -222,10 +256,11 @@ export default function Page() {
             ]}
             mapLines={[
               {
-                coordinates: data.map((point) => [
-                  point.latitude,
-                  point.longitude,
-                ]),
+                // coordinates: data.map((point) => [
+                //   point.latitude,
+                //   point.longitude,
+                // ]),
+                coordinates: MODEL_DATA as any,
               },
             ]}
           />
@@ -246,7 +281,7 @@ export default function Page() {
                     cursor: canExecute ? "pointer" : "not-allowed",
                     borderStyle: canExecute ? "solid" : "dashed",
                   }}
-                  className={`h-full w-full rounded-lg border-2 border-white border-opacity-30 bg-white bg-opacity-5 shadow-lg transition-all hover:scale-105 hover:bg-opacity-10 ${index === 12 && "col-span-3 h-[60px]"}`}
+                  className={`h-[60px] w-full rounded-lg border-2 border-white border-opacity-30 bg-white bg-opacity-5 shadow-lg transition-all hover:scale-105 hover:bg-opacity-10 ${index === 12 && "col-span-3"}`}
                 >
                   {commandMap[index]}
                 </button>
