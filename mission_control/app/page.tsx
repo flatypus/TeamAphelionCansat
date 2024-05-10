@@ -4,14 +4,12 @@ import { commandMap } from "@/lib/constants";
 import { Data, GRAPH_KEYS, Orientation } from "@/lib/types";
 import { GiPressureCooker } from "react-icons/gi";
 import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
-// import { Map } from "react-offline-maps";
+import { Map } from "react-offline-maps";
 import { PiMountainsLight } from "react-icons/pi";
 import { TbTemperaturePlus } from "react-icons/tb";
 import { useEffect, useRef, useState } from "react";
-import ThreeScene from "./scene";
-
-import { Map } from "../../../offline-map/src/index";
 import Modal from "./modal";
+import ThreeScene from "./scene";
 
 function domain(numbers: number[]) {
   return [Math.min(...numbers), Math.max(...numbers)];
@@ -203,10 +201,11 @@ export default function Page() {
             config={{
               showCoordinates: true,
               showCenter: true,
+              showOSMBorders: true,
             }}
             latitude={49.541125}
             longitude={-112.15398}
-            zoom={4}
+            zoom={1}
             className="w-full] h-full"
             mapElements={[
               {
@@ -224,10 +223,49 @@ export default function Page() {
             ]}
             mapLines={[
               {
-                coordinates: data.map((point) => [
-                  point.latitude,
-                  point.longitude,
-                ]),
+                // coordinates: data.map((point) => [
+                //   point.latitude,
+                //   point.longitude,
+                // ]),
+
+                coordinates: [
+                  [34.991639, 135.759971],
+                  [34.990245, 135.759689],
+                  [34.988615, 135.759561],
+                  [34.987654, 135.759926],
+                  [34.986862, 135.76066],
+                  [34.986179, 135.761924],
+                  [34.985932, 135.763253],
+                  [34.986369, 135.764518],
+                  [34.9872, 135.765806],
+                  [34.98833, 135.767014],
+                  [34.989839, 135.767702],
+                  [34.991408, 135.76798],
+                  [34.993063, 135.767702],
+                  [34.994153, 135.76713],
+                  [34.995111, 135.766289],
+                  [34.995857, 135.765184],
+                  [34.996371, 135.763696],
+                  [34.996524, 135.762156],
+                  [34.996312, 135.760593],
+                  [34.995705, 135.759174],
+                  [34.994721, 135.758192],
+                  [34.993397, 135.757518],
+                  [34.9921, 135.757275],
+                  [34.990888, 135.757518],
+                  [34.989822, 135.758107],
+                  [34.988972, 135.758885],
+                  [34.98833, 135.759934],
+                  [34.987862, 135.761241],
+                  [34.987782, 135.762632],
+                  [34.98825, 135.764048],
+                  [34.989209, 135.765306],
+                  [34.990469, 135.766272],
+                  [34.991889, 135.766751],
+                  [34.993354, 135.766641],
+                  [34.994524, 135.76599],
+                  [34.995407, 135.764994],
+                ],
               },
             ]}
           />
