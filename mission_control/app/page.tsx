@@ -4,13 +4,14 @@ import { commandMap } from "@/lib/constants";
 import { Data, GRAPH_KEYS, Orientation } from "@/lib/types";
 import { GiPressureCooker } from "react-icons/gi";
 import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
-import { Map } from "react-offline-maps";
+// import { Map } from "react-offline-maps";
 import { PiMountainsLight } from "react-icons/pi";
 import { TbTemperaturePlus } from "react-icons/tb";
 import { useEffect, useRef, useState } from "react";
 import ThreeScene from "./scene";
 
-// import { Map } from "../../../offline-map/src/index";
+import { Map } from "../../../offline-map/src/index";
+import Modal from "./modal";
 
 function domain(numbers: number[]) {
   return [Math.min(...numbers), Math.max(...numbers)];
@@ -117,6 +118,7 @@ export default function Page() {
   const websocketRef = useRef<WebSocket>();
   const [toasts, setToasts] = useState<string[]>([]);
   const [canExecute, setCanExecute] = useState<boolean>(true);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const orientationRef = useRef<Orientation>({
     gyroX: 0,
     gyroY: 0,
@@ -161,6 +163,15 @@ export default function Page() {
 
   return (
     <div className="max-w-screen relative h-full min-h-screen w-full bg-gray p-5">
+      {modalOpen && (
+        <Modal
+          setModalOpen={setModalOpen}
+          handleSubmit={() => {
+            window.localStorage.removeItem("data");
+            setData([]);
+          }}
+        ></Modal>
+      )}
       {toasts.length > 0 && (
         <div className="absolute bottom-4 left-4 flex flex-col gap-4 rounded-lg bg-[#868686] p-2 shadow-lg">
           {toasts.map((toast, index) => (
@@ -174,10 +185,7 @@ export default function Page() {
         <div className="relative col-span-2 flex flex-col divide-y-2 divide-[#6d6d6d] overflow-hidden">
           <button
             className="absolute right-0 top-0 m-2 transform rounded-lg bg-blue-500 p-2 shadow-lg transition-all duration-300 ease-in-out hover:scale-110"
-            onClick={() => {
-              window.localStorage.removeItem("data");
-              setData([]);
-            }}
+            onClick={() => setModalOpen(true)}
           >
             Clear Data
           </button>
