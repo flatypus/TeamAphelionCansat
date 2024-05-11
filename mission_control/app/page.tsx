@@ -4,25 +4,58 @@ import { MODEL_DATA, commandMap } from "@/lib/constants";
 import { Data, GRAPH_KEYS, Orientation } from "@/lib/types";
 import { GiPressureCooker } from "react-icons/gi";
 import { LineChart, Line, Tooltip, XAxis, YAxis } from "recharts";
-import { Map } from "react-offline-maps";
-// import { Map } from "../../../offline-map/src/index";
+// import { Map } from "react-offline-maps";
+import { Map } from "../../../offline-map/src/index";
 import { PiMountainsLight } from "react-icons/pi";
 import { TbTemperaturePlus } from "react-icons/tb";
 import { useEffect, useRef, useState } from "react";
 import Modal from "./modal";
 import ThreeScene from "./scene";
+import { DefaultDict } from "@/lib/defaultDict";
 
 function domain(numbers: number[]) {
-  return [Math.min(...numbers), Math.max(...numbers)];
+  let min = Infinity;
+  let max = -Infinity;
+  for (let n of numbers) {
+    if (n < min) min = n;
+    if (n > max) max = n;
+  }
+  return [min, max];
 }
 
-const movingAverage = (array: number[], windowSize: number) => {
-  const movingAverageArray = [];
-  for (let i = 0; i < array.length - windowSize; i++) {
-    const sum = array.slice(i, i + windowSize).reduce((a, b) => a + b, 0);
-    movingAverageArray.push(sum / windowSize);
+function toCSV<T extends object>(array: T[]): string {
+  const header = Object.keys(array[0])
+    .map((key) => key.replaceAll(",", "."))
+    .join(",");
+
+  const rows = array.map((row) =>
+    Object.values(row)
+      .map((value) => {
+        if (typeof value === "string") {
+          return value.replaceAll(",", ".");
+        }
+        return value;
+      })
+      .join(","),
+  );
+  return [header, ...rows].join("\n");
+}
+
+const movingAverage = (
+  dataMap: DefaultDict<string, number[]>,
+  windowSize: number,
+) => {
+  const keys = dataMap.keys();
+  for (let key of keys) {
+    const array = dataMap.getValue(key);
+    const movingAverageArray = [];
+    for (let i = 0; i < array.length - windowSize; i++) {
+      const sum = array.slice(i, i + windowSize).reduce((a, b) => a + b, 0);
+      movingAverageArray.push(sum / windowSize);
+    }
+    dataMap.set(`average-${key}`, movingAverageArray);
   }
-  return movingAverageArray;
+  return dataMap;
 };
 
 function Icon({ icon }: { icon: string }) {
@@ -62,21 +95,32 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
   const graphs: GraphReturn = {} as GraphReturn;
   for (let index = 0; index < GRAPH_KEYS.length; index++) {
     const key = GRAPH_KEYS[index];
-    const valueList = data.map((point) =>
-      key === "altitude"
-        ? point[key] + 80
-        : key === "temperature"
-          ? point[key] - 15
-          : point[key],
-    );
+    const valueMap = new DefaultDict<string, number[]>([]);
+    for (let point of data) {
+      if (key === "altitude") {
+        valueMap.getValue(key).push(point[key] + 80);
+      } else if (key === "temperature") {
+        valueMap.getValue(key).push(point[key] - 5);
+      } else if (key === "acceleration") {
+        valueMap.getValue("accelX").push(point["accelX"]);
+        valueMap.getValue("accelY").push(point["accelY"]);
+        valueMap.getValue("accelZ").push(point["accelZ"]);
+      } else {
+        valueMap.getValue(key).push(point[key]);
+      }
+    }
 
-    const movingAverageValueList = movingAverage(valueList, 20);
-    const keyedValueList = valueList.map((point, index) => {
-      return {
-        [key]: point,
-        [`average-${key}`]: movingAverageValueList[index],
-      };
-    });
+    const withMovingAverage = movingAverage(valueMap, 20);
+    const keys = withMovingAverage.keys();
+    const keyedValueList: Record<string, number>[] = withMovingAverage
+      .getValue(key)
+      .map((value, index) =>
+        Object.fromEntries(
+          keys.map((k) => [[k], withMovingAverage.getValue(k)[index]]),
+        ),
+      );
+
+    console.log(keyedValueList);
 
     // const valueList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     graphs[key] = (
@@ -91,14 +135,16 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
         <LineChart
           key={key}
           width={440}
-          height={200}
+          height={145}
           margin={{ top: 5, left: 20, right: 0, bottom: -15 }}
           data={keyedValueList}
         >
           <XAxis dataKey="name" />
           <YAxis
             type="number"
-            domain={domain(valueList)}
+            domain={domain(
+              keys.map((k) => keyedValueList.map((v) => v[k])).flat(),
+            )}
             stroke="#959696"
             tickFormatter={(value) =>
               (Math.round(value * 1000) / 1000).toString()
@@ -110,33 +156,31 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
               if (value === undefined) return null;
               return (
                 <div className="bg-white p-2 text-black">
-                  <div>
-                    {key.at(0)?.toUpperCase()}
-                    {key.slice(1)}: {Math.round(value * 1000) / 1000}
-                    {units[index]}
-                  </div>
+                  {keys.map((k) => {
+                    if (k.includes("average")) return;
+                    return (
+                      <div>
+                        {k.at(0)?.toUpperCase()}
+                        {k.slice(1)}: {Math.round(value * 1000) / 1000}
+                        {units[index]}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             }}
           />
-          <Line
-            type="monotone"
-            dataKey={key}
-            stroke="#21b2aa"
-            animationEasing="ease-in-out"
-            animationDuration={10}
-            dot={false}
-            strokeWidth={2}
-          />
-          <Line
-            type="monotone"
-            dataKey={`average-${key}`}
-            stroke="#b22121"
-            animationEasing="ease-in-out"
-            animationDuration={10}
-            dot={false}
-            strokeWidth={2}
-          />
+          {keys.map((k) => (
+            <Line
+              type="monotone"
+              dataKey={k}
+              stroke={k.includes("average") ? "#b22121" : "#21b2aa"}
+              animationEasing="ease-in-out"
+              animationDuration={10}
+              dot={false}
+              strokeWidth={2}
+            />
+          ))}
         </LineChart>
       </div>
     );
@@ -146,7 +190,29 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
 }
 
 export default function Page() {
-  const [data, setData] = useState<Data[]>([]);
+  const [data, setData] = useState<Data[]>([
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+    { accelX: 1, accelY: -1, accelZ: -2 },
+    { accelX: 0, accelY: 0, accelZ: 0 },
+  ]);
   const websocketRef = useRef<WebSocket>();
   const [toasts, setToasts] = useState<string[]>([]);
   const [canExecute, setCanExecute] = useState<boolean>(true);
@@ -189,6 +255,7 @@ export default function Page() {
     pressure: PressureGraph,
     altitude: AltitudeGraph,
     relativeAltitude: RelativeAltitudeGraph,
+    acceleration: AccelerationGraph,
   } = Graphs({ data });
 
   const [RelativeSwitch, relative] = useSwitch();
@@ -199,6 +266,15 @@ export default function Page() {
         <Modal
           setModalOpen={setModalOpen}
           handleSubmit={() => {
+            const data = window.localStorage.getItem("data");
+            const link = document.createElement("a");
+            const file = new Blob([toCSV(JSON.parse(data!))], {
+              type: "application/json",
+            });
+            link.href = URL.createObjectURL(file);
+            const date = new Date();
+            link.download = `ehcansat_data_${date.toLocaleDateString()}_${date.toLocaleTimeString()}.csv`;
+            link.click();
             window.localStorage.removeItem("data");
             setData([]);
           }}
@@ -223,6 +299,7 @@ export default function Page() {
           </button>
           {TemperatureGraph}
           {PressureGraph}
+          {AccelerationGraph}
           <div className="relative w-full">
             <div className="absolute right-16 top-5 flex flex-row items-center gap-x-2 text-lg">
               Relative: {RelativeSwitch}
@@ -236,8 +313,8 @@ export default function Page() {
               showCoordinates: true,
               showCenter: true,
             }}
-            latitude={49.541125}
-            longitude={-112.15398}
+            latitude={49.694747}
+            longitude={-112.809986}
             zoom={4}
             className="w-full] h-full"
             mapElements={[
@@ -250,17 +327,16 @@ export default function Page() {
                     src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Pin-location.png"
                   />
                 ),
-                latitude: 49.541125,
-                longitude: -112.15398,
+                latitude: 49.694747,
+                longitude: -112.809986,
               },
             ]}
             mapLines={[
               {
-                // coordinates: data.map((point) => [
-                //   point.latitude,
-                //   point.longitude,
-                // ]),
-                coordinates: MODEL_DATA as any,
+                coordinates: data.map((point) => [
+                  point.latitude,
+                  point.longitude,
+                ]),
               },
             ]}
           />

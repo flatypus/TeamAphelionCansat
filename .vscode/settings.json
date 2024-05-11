@@ -17,6 +17,15 @@
     "regex": "cpp",
     "queue": "cpp",
     "stack": "cpp",
-    "ostream": "cpp"
+    "ostream": "cpp",
+    "__node_handle": "cpp",
+    "atomic": "cpp",
+    "__memory": "cpp",
+    "limits": "cpp",
+    "locale": "cpp",
+    "optional": "cpp",
+    "ratio": "cpp",
+    "system_error": "cpp",
+    "tuple": "cpp"
   }
 }

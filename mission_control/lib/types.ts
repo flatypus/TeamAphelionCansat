@@ -20,6 +20,7 @@ export const GRAPH_KEYS = [
   "pressure",
   "altitude",
   "relativeAltitude",
+  "acceleration",
 ] as const;
 
 export type Orientation = {

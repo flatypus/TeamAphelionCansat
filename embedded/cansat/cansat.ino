@@ -18,8 +18,7 @@ Servo drill;
 SoftwareSerial loraSerial(15, 14);
 MS5611 sensor;
 SFE_UBLOX_GNSS GPSGNSS;
-Bmi088Accel accel(Wire, 0x18);
-Bmi088Gyro gyro(Wire, 0x68);
+Bmi088 bmi(Wire, 0x18, 0x68);
 #pragma endregion
 
 #define GPSWire Wire1
@@ -45,9 +44,12 @@ volatile int relativeAltitude;
 volatile int accelX;
 volatile int accelY;
 volatile int accelZ;
-volatile int gyroX;
-volatile int gyroY;
-volatile int gyroZ;
+// volatile int gyroX = 0;
+// volatile int gyroY = 0;
+// volatile int gyroZ = 0;
+volatile int gyroVelX = 0;
+volatile int gyroVelY = 0;
+volatile int gyroVelZ = 0;
 volatile int latitude = 0;
 volatile int longitude = 0;
 volatile int confirmation = 0;
@@ -62,8 +64,7 @@ void mainSensorThread()
   while (1)
   {
     sensor.read();
-    accel.readSensor();
-    gyro.readSensor();
+    bmi.readSensor();
 
     realTemperature = sensor.getTemperature() * factor;
     float localPressure = sensor.getPressure();
@@ -73,12 +74,12 @@ void mainSensorThread()
     float localRealAltitude = altitude(localRealPressure);
     realAltitude = localRealAltitude * factor;
     relativeAltitude = (localRealAltitude - referenceAltitude) * factor;
-    accelX = accel.getAccelX_mss() * factor;
-    accelY = accel.getAccelY_mss() * factor;
-    accelZ = accel.getAccelZ_mss() * factor;
-    gyroX = gyro.getGyroX_rads() * factor;
-    gyroY = gyro.getGyroY_rads() * factor;
-    gyroZ = gyro.getGyroZ_rads() * factor;
+    accelX = bmi.getAccelX_mss() * factor;
+    accelY = bmi.getAccelY_mss() * factor;
+    accelZ = bmi.getAccelZ_mss() * factor;
+    gyroVelX = bmi.getGyroX_rads() * factor;
+    gyroVelY = bmi.getGyroY_rads() * factor;
+    gyroVelZ = bmi.getGyroZ_rads() * factor;
 
     delay(1);
   }
@@ -90,8 +91,8 @@ void gpsThread()
   {
     if (GPSGNSS.getPVT())
     {
-      latitude = GPSGNSS.getLatitude() / 10e6;
-      longitude = GPSGNSS.getLongitude() / 10e6;
+      latitude = GPSGNSS.getLatitude();
+      longitude = GPSGNSS.getLongitude();
     }
     delay(1);
   }
@@ -125,13 +126,13 @@ void executeCommand(int command)
     drill.writeMicroseconds(1000);
     break;
   case 6: // Rest chamber
-    tankServo.write(180);
+    tankServo.write(133);
     break;
   case 7: // Water chamber
-    tankServo.write(125);
+    tankServo.write(81);
     break;
   case 8: // Test chamber
-    tankServo.write(102);
+    tankServo.write(60);
     break;
   case 9: // FPV ON
     digitalWrite(12, HIGH);
@@ -143,7 +144,7 @@ void executeCommand(int command)
     digitalWrite(10, HIGH);
     delay(100);
     digitalWrite(10, LOW);
-    break;  
+    break;
   default:
     Serial.println("Unknown command");
     break;
@@ -211,19 +212,12 @@ void setup()
   }
   Serial.println("GNSS module detected!");
 
-  while (accel.begin() < 0)
+  while (bmi.begin() < 0)
   {
-    Serial.println("Accel Initialization Error");
+    Serial.println("BMI Initialization Error");
     delay(1000);
   }
-  Serial.println("Acceleration initialized!");
-
-  while (gyro.begin() < 0)
-  {
-    Serial.println("Gyro Initialization Error");
-    delay(1000);
-  }
-  Serial.println("Gyro Initialized!");
+  Serial.println("BMI Initialized!");
 
   sensor.read();
   referencePressure = sensor.getPressure();

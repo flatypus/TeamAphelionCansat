@@ -63,6 +63,7 @@ export class Serial {
     return Object.fromEntries(
       DATA_KEYS.map((key, i) => {
         const int = parseInt(match[i + 2]);
+        if (key === "latitude" || key === "longitude") return [key, int / 1e7];
         return [key, int / 1000];
       }),
     ) as Data;
@@ -73,8 +74,8 @@ export class Serial {
       console.log("[Received from Arduino]: ", data);
       const message = this.extractMessage(data);
       if (!message) return;
-      console.log("[Received from Arduino]: ", message);
       const processed = this.processData(message);
+      console.log("[Parsed data]: ", JSON.stringify(processed));
       if (processed) {
         listener(processed);
       }
