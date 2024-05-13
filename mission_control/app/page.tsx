@@ -13,6 +13,14 @@ import Modal from "./modal";
 import ThreeScene from "./scene";
 import { DefaultDict } from "@/lib/defaultDict";
 
+function colorMap(name: string) {
+  if (name === "accelX") return "#FF0000";
+  if (name === "accelY") return "#00FF00";
+  if (name === "accelZ") return "#0000FF";
+  if (name.includes("average")) return "#FFFFFF";
+  return "#21b2aa";
+}
+
 function domain(numbers: number[]) {
   let min = Infinity;
   let max = -Infinity;
@@ -71,8 +79,8 @@ function Icon({ icon }: { icon: string }) {
   }
 }
 
-function useSwitch() {
-  const [state, setState] = useState<boolean>(false);
+function useSwitch(defaultValue: boolean) {
+  const [state, setState] = useState<boolean>(defaultValue);
   const switchComponent = (
     <div
       className="border-gray-500 relative h-[27px] w-[52px] cursor-pointer rounded-full border-[1px] transition-all duration-300 ease-in-out"
@@ -91,7 +99,13 @@ function useSwitch() {
 const units = ["°C", "mBar", "m", "m"];
 
 type GraphReturn = Record<(typeof GRAPH_KEYS)[number], JSX.Element>;
-function Graphs({ data }: { data: Data[] }): GraphReturn {
+function Graphs({
+  data,
+  average,
+}: {
+  data: Data[];
+  average: boolean;
+}): GraphReturn {
   const graphs: GraphReturn = {} as GraphReturn;
   for (let index = 0; index < GRAPH_KEYS.length; index++) {
     const key = GRAPH_KEYS[index];
@@ -112,17 +126,15 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
 
     const withMovingAverage = movingAverage(valueMap, 20);
     const keys = withMovingAverage.keys();
-    const keyedValueList: Record<string, number>[] = withMovingAverage
-      .getValue(key)
-      .map((value, index) =>
-        Object.fromEntries(
-          keys.map((k) => [[k], withMovingAverage.getValue(k)[index]]),
-        ),
-      );
+    let keyedValueList: Record<string, number>[] = [];
+    for (let i = 0; i < keys[0]?.length; i++) {
+      const obj: Record<string, number> = {};
+      for (let key of keys) {
+        obj[key] = withMovingAverage.getValue(key)[i];
+      }
+      keyedValueList.push(obj);
+    }
 
-    console.log(keyedValueList);
-
-    // const valueList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     graphs[key] = (
       <div className="p-4">
         <div className="mb-4 flex flex-row items-center gap-2 text-base text-[#cccccc]">
@@ -151,17 +163,23 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
             }
           />
           <Tooltip
-            content={({ payload }) => {
-              const value = payload?.[0]?.value as number;
-              if (value === undefined) return null;
+            content={({ payload: payloadList }) => {
+              if (!payloadList) return;
               return (
                 <div className="bg-white p-2 text-black">
-                  {keys.map((k) => {
-                    if (k.includes("average")) return;
+                  {payloadList.map((payload) => {
+                    const name = payload.name as string;
+                    const value = payload.value as number;
+                    if (!name || value === undefined) return;
+                    if (name.includes("average")) return;
                     return (
-                      <div>
-                        {k.at(0)?.toUpperCase()}
-                        {k.slice(1)}: {Math.round(value * 1000) / 1000}
+                      <div className="flex flex-row items-center">
+                        <div
+                          style={{ backgroundColor: payload.color }}
+                          className="mr-2 h-[10px] w-[10px]"
+                        />
+                        {name.at(0)?.toUpperCase()}
+                        {name.slice(1)}: {Math.round(value * 1000) / 1000}
                         {units[index]}
                       </div>
                     );
@@ -170,17 +188,20 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
               );
             }}
           />
-          {keys.map((k) => (
-            <Line
-              type="monotone"
-              dataKey={k}
-              stroke={k.includes("average") ? "#b22121" : "#21b2aa"}
-              animationEasing="ease-in-out"
-              animationDuration={10}
-              dot={false}
-              strokeWidth={2}
-            />
-          ))}
+          {keys.map((k) => {
+            if (k.includes("average") && !average) return;
+            return (
+              <Line
+                type="monotone"
+                dataKey={k}
+                stroke={colorMap(k)}
+                animationEasing="ease-in-out"
+                animationDuration={10}
+                dot={false}
+                strokeWidth={k.includes("average") ? 1 : 2}
+              />
+            );
+          })}
         </LineChart>
       </div>
     );
@@ -190,33 +211,13 @@ function Graphs({ data }: { data: Data[] }): GraphReturn {
 }
 
 export default function Page() {
-  const [data, setData] = useState<Data[]>([
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-    { accelX: 1, accelY: -1, accelZ: -2 },
-    { accelX: 0, accelY: 0, accelZ: 0 },
-  ]);
+  // random data list
+  const [data, setData] = useState<Data[]>([]);
   const websocketRef = useRef<WebSocket>();
   const [toasts, setToasts] = useState<string[]>([]);
   const [canExecute, setCanExecute] = useState<boolean>(true);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+
   const orientationRef = useRef<Orientation>({
     gyroX: 0,
     gyroY: 0,
@@ -242,6 +243,7 @@ export default function Page() {
       }
       const { gyroX, gyroY, gyroZ } = newData;
       orientationRef.current = { gyroX, gyroY, gyroZ };
+
       setData((data) => {
         const newArray = [...data, newData];
         window.localStorage.setItem("data", JSON.stringify(newArray));
@@ -250,15 +252,16 @@ export default function Page() {
     };
   }, []);
 
+  const [AverageSwitch, average] = useSwitch(true);
+  const [RelativeSwitch, relative] = useSwitch(false);
+
   const {
     temperature: TemperatureGraph,
     pressure: PressureGraph,
     altitude: AltitudeGraph,
     relativeAltitude: RelativeAltitudeGraph,
     acceleration: AccelerationGraph,
-  } = Graphs({ data });
-
-  const [RelativeSwitch, relative] = useSwitch();
+  } = Graphs({ data, average: average as boolean });
 
   return (
     <div className="max-w-screen relative h-full min-h-screen w-full bg-gray p-5">
@@ -290,13 +293,17 @@ export default function Page() {
         </div>
       )}
       <div className="grid h-full w-full grid-cols-5 divide-x-2 divide-[#6d6d6d] border-2 border-white border-opacity-30">
+        <button
+          className="absolute right-0 top-0 z-[10] m-2 transform rounded-lg bg-blue-500 p-2 shadow-lg transition-all duration-300 ease-in-out hover:scale-110"
+          onClick={() => setModalOpen(true)}
+        >
+          Clear Data
+        </button>
         <div className="relative col-span-2 flex flex-col divide-y-2 divide-[#6d6d6d] overflow-hidden">
-          <button
-            className="absolute right-0 top-0 m-2 transform rounded-lg bg-blue-500 p-2 shadow-lg transition-all duration-300 ease-in-out hover:scale-110"
-            onClick={() => setModalOpen(true)}
-          >
-            Clear Data
-          </button>
+          <div className="absolute right-16 top-5 flex flex-row items-center gap-x-2 text-lg">
+            Show average: {AverageSwitch}
+          </div>
+
           {TemperatureGraph}
           {PressureGraph}
           {AccelerationGraph}
@@ -329,14 +336,6 @@ export default function Page() {
                 ),
                 latitude: 49.694747,
                 longitude: -112.809986,
-              },
-            ]}
-            mapLines={[
-              {
-                coordinates: data.map((point) => [
-                  point.latitude,
-                  point.longitude,
-                ]),
               },
             ]}
           />

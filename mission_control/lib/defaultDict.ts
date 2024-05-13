@@ -16,7 +16,7 @@ export class DefaultDict<K extends string | number | symbol, V> {
 
   getValue(key: K) {
     if (!(key in this.dict)) {
-      this.dict[key] = this.defaultValue;
+      this.dict[key] = JSON.parse(JSON.stringify(this.defaultValue));
     }
     return this.dict[key];
   }
