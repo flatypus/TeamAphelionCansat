@@ -27,6 +27,7 @@ export function Show({
         opacity: scrollAmount > start && scrollAmount < end ? 1 : 0,
         left: `${left}%`,
         top: `${top}%`,
+        zIndex: 50,
       }}
     >
       <div className="mb-4 text-center text-3xl font-bold">{title}</div>

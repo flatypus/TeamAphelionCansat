@@ -104,7 +104,7 @@ function ThreeScene() {
   }, []);
 
   return (
-    <div className="relative h-full min-h-screen w-full overflow-x-hidden bg-black">
+    <div className="relative h-screen w-full overflow-hidden bg-black">
       <div
         className="absolute left-0 top-0 z-[100] h-full w-full bg-blue-400 transition-all duration-500"
         style={{ opacity: readyBackground && readyModel ? 0 : 1 }}
