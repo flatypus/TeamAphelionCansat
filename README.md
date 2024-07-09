@@ -59,16 +59,19 @@ To accomplish this, the CanSat will be first launched in a rocket to around 1km,
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/61ea326a-2921-4ace-96f3-f9093501040e)
 
 
-### Ground Control
-- Nextjs frontend, written by Hinson
-- Graphs for showing live data updates
+### Software/Ground Control
+- CanSat onboard programming written in Arduino
+  - Written for Teensy 4.0, so it supports 'multithreading' (with careful process jumping)
+- Nextjs frontend + ExpressJS backend, written by Hinson
+  - Data path: Onboard sensors -> Arduino serial -> Radio -> WebSocket backend -> Nextjs graph
+- Graphs showing live data updates (temperature, pressure, calculated altitude)
 - Fully-functional offline (no WIFI) slippy map
-  - npm install react-offline-maps)
+  - You can also embed it as a react component with `bun i react-offline-maps`
   - OSM tile layers; tile caching
 - Gyrometer data 3D (threejs)
 - Control motors live with Bidirectional communication
-  - Use websockets to write to serial
-  - Parse as commands
+  - Buttons send message via. data path in reverse:
+  -  Websockets -> Radio -> Serial read -> parse as commands -> send power to pin
 
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/e3829b9f-d954-46f8-87cd-284ac29d4612)
 
