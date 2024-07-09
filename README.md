@@ -1,6 +1,6 @@
 # Team Aphelion CanSat | 🏆 1st Place in Canada 2024 | Represented Team Canada at European Space Agency
 
-## CanSat repo for Eric Hamber Secondary School, from Vancouver, BC, Canada.
+## Project repo for Eric Hamber Secondary School from Vancouver, Canada.
 ### 
 
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/465017f2-cdfc-444c-9a90-74c7ac1a8d0d)
