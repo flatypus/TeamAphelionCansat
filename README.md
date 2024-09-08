@@ -5,6 +5,7 @@
 
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/465017f2-cdfc-444c-9a90-74c7ac1a8d0d)
 
+![image](https://drive.google.com/drive/u/0/folders/1k1l5CxFQ5mhNrqrI3n2Pworg2vZ1Y_T9)
 
 ### Team Members:
 - [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
