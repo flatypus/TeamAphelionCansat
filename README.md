@@ -41,6 +41,8 @@ The project is split into four subdirectories:
 - 'mission-control': The frontend dashboard for the ground station
 - 'landing': The landing page for the website
 - 'embedded': The Arduino code for the CanSat microcontroller
+- 'hardware': The electrical schematics and PCB manufacturing files
+- 'mechanical': The CAD files of our CanSat
 
 The embedded code consists of sensors detecting temperature, pressure, altitude, and location. The data is sent to the ground station via radio communication, which is relayed via socket communication to the frontend dashboard. The dashboard then visualizes that information in the form of graphs, a map showing the CanSat's location, and the live 3D rotation of the CanSat.
 
