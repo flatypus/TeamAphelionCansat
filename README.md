@@ -7,12 +7,12 @@
 
 
 ### Team Members:
-- [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
-  - PCB Design
-  - CanSat Structure
 - [Tristan Yan-Klassen](https://www.linkedin.com/in/tristan-yan-klassen-510788275/) - Co-Captain and Mission Leader
   - Soil Sample Intake
   - Soil Sample Testing
+- [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
+  - PCB Design
+  - CanSat Structure
 - [Hinson Chan](https://github.com/flatypus) - Software Lead
   - Ground Station Software
   - Map Library Development
