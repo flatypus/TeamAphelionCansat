@@ -7,14 +7,14 @@
 
 
 ### Team Members:
-- [Tristan Yan-Klassen](https://www.linkedin.com/in/tristan-yan-klassen-510788275/) - Co-Captain and Mission Leader
-  - Drilling Mechanism
-  - CanSat Integration
-  - 
 - [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
   - PCB Design and Assembly
   - Electrical Design
   - CanSat Integration
+- [Tristan Yan-Klassen](https://www.linkedin.com/in/tristan-yan-klassen-510788275/) - Co-Captain and Mission Leader
+  - Drilling Mechanism
+  - CanSat Integration
+  - 
 - [Hinson Chan](https://github.com/flatypus) - Software Lead
   - Ground Station Software
   - Map Library Development
