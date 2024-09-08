@@ -57,7 +57,7 @@ To accomplish this, the CanSat will be first launched in a rocket to around 1km,
 
 
 ### Custom Designed Printed Circuit Board
-- Designed by Jason on KiCad
+- Designed and hand-assembled by Jason on KiCad
 
 
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/61ea326a-2921-4ace-96f3-f9093501040e)
