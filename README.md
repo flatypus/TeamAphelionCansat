@@ -1,4 +1,4 @@
-# Team Aphelion CanSat | 🏆 1st Place in Canada 2024 | Represented Team Canada at European Space Agency
+# Team Aphelion CanSat | 🏆 1st Place in Canada 2024 | Represented Canada at European Space Agency
 
 ## Project repo for Eric Hamber Secondary School from Vancouver, Canada.
 ### 
@@ -8,10 +8,10 @@
 
 ### Team Members:
 - [Tristan Yan-Klassen](https://www.linkedin.com/in/tristan-yan-klassen-510788275/) - Co-Captain and Mission Leader
-  - Soil Sample Intake
-  - Soil Sample Testing
+  - Soil Sample Intake and Testing
 - [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
-  - PCB Design
+  - PCB Design and Assembly
+  - Electrical Design
   - CanSat Structure
 - [Hinson Chan](https://github.com/flatypus) - Software Lead
   - Ground Station Software
@@ -25,9 +25,8 @@
   - Outreach
   - Parachute Testing
 - Mendel Rieseberg - Ground Control
-  - Ground Station Software
   - Radio Communications
-  - Microcontroller/PCB Code
+
 
 ### Project abstract
 
