@@ -8,14 +8,15 @@
 ![image](https://drive.google.com/drive/u/0/folders/1k1l5CxFQ5mhNrqrI3n2Pworg2vZ1Y_T9)
 
 ### Team Members:
+- [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
+  - Electrical Design Lead
+  - PCB Design and Assembly
+  - Mechanical Design and Fabrication
+  - CanSat Integration
 - [Tristan Yan-Klassen](https://www.linkedin.com/in/tristan-yan-klassen-510788275/) - Co-Captain and Mission Leader
   - Drilling Apparatus Design and Assembly
-  - Mechanical Design and Fabrication
+  - Mechanical Design and Fabrication Lead
   - CanSat Body and Systems Integration
-- [Jason Huang](https://www.linkedin.com/in/jason-huang-342449250/) - Co-Captain and Lead Engineer
-  - PCB Design and Assembly
-  - Electrical Design
-  - CanSat Integration
 - [Hinson Chan](https://github.com/flatypus) - Software Lead
   - Ground Station Software
   - Map Library Development
