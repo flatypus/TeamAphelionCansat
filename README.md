@@ -14,8 +14,8 @@
   - Mechanical Design and Fabrication
   - CanSat Integration
 - [Tristan Yan-Klassen](https://www.linkedin.com/in/tristan-yan-klassen-510788275/) - Co-Captain and Mission Leader
-  - Drilling Apparatus Design and Assembly
   - Mechanical Design and Fabrication Lead
+  - Drilling Apparatus Design and Assembly
   - CanSat Body and Systems Integration
 - [Hinson Chan](https://github.com/flatypus) - Software Lead
   - Ground Station Software
