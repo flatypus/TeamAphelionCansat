@@ -54,8 +54,7 @@ This CanSat is designed to complete the primary mission, which is to send temper
 
 To accomplish this, the CanSat will be first launched in a rocket to around 1km, then deployed with a parachute to descend at around 6m/s. When the CanSat lands, it will be on its side; we will send a command through our ground station to release the landing legs, which will spring the CanSat upright. We will then initiate the drill, which will drill a hole through our waterproof water chamber, releasing the water onto the soil to dampen it. The CanSat will then continue drilling into the soil, picking up a sample of wet soil, and then stop drilling and retracting up into the CanSat body. The ninhydrin chamber will swivel into place, where then the drill will lower into the chemical, allowing the soil to begin the chemical test. All of this will be remotely controlled from our dashboard.
 
-![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/4f74ddd0-e566-4af4-8859-4af436c91ec3)
-
+![image](https://github.com/user-attachments/assets/5aa373f0-cc04-44e3-b651-f04aba4a6766)
 
 ### Custom Designed Printed Circuit Board
 - Designed and hand-assembled by Jason on KiCad
