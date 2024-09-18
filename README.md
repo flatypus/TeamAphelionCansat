@@ -87,8 +87,6 @@ To accomplish this, the CanSat will be first launched in a rocket to around 1km,
 ### Cost Breakdown
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/d6b4b124-a2fb-4ea4-ae6f-68d0d1bc5b8d)
 
-### PCB Cost Breakdown
-![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/de44e27b-3906-42fb-bf6e-2ec833c07f3d)
 
 
 
