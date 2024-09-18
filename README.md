@@ -43,7 +43,7 @@ The project is split into six subdirectories:
 - 'mission-control': The frontend dashboard for the ground station
 - 'landing': The landing page for the website
 - 'embedded': The Arduino code for the CanSat microcontroller
-- 'hardware': The electrical schematics and PCB manufacturing files
+- 'electrical': The electrical schematics and PCB manufacturing files
 - 'mechanical': The CAD files of our CanSat
 
 The embedded code consists of sensors detecting temperature, pressure, altitude, and location. The data is sent to the ground station via radio communication, which is relayed via socket communication to the frontend dashboard. The dashboard then visualizes that information in the form of graphs, a map showing the CanSat's location, and the live 3D rotation of the CanSat.
@@ -61,9 +61,11 @@ To accomplish this, the CanSat will be first launched in a rocket to around 1km,
 
 ![image](https://github.com/user-attachments/assets/5aa373f0-cc04-44e3-b651-f04aba4a6766)
 
-### Custom Designed Printed Circuit Board
-- Designed and hand-assembled by Jason on KiCad
 
+### Custom Designed Printed Circuit Board
+- Designed and hand-assembled by Jason on KiCad.
+- Onboard sensors: GPS, 6 axis IMU, and 2 redundant barometers.
+- Includes MOSFETs for motor control, 5V buck converter, and TVS diodes for ESD protection.
 
 ![image](https://github.com/flatypus/TeamAphelionCansat/assets/68029599/61ea326a-2921-4ace-96f3-f9093501040e)
 
