@@ -77,6 +77,7 @@ To accomplish this, the CanSat will be first launched in a rocket to around 1km,
   - Data path: Onboard sensors -> Arduino serial -> Radio -> WebSocket backend -> Nextjs graph
 - Graphs showing live data updates (temperature, pressure, calculated altitude)
 - Fully-functional offline (no WIFI) slippy map
+  - Open-sourced [here](https://github.com/flatypus/react-offline-maps) and [npm](https://www.npmjs.com/package/react-offline-maps)
   - You can also embed it as a react component with `bun i react-offline-maps`
   - OSM tile layers; tile caching
 - Gyrometer data 3D (threejs)
